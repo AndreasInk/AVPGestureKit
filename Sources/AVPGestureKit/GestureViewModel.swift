@@ -34,20 +34,16 @@ public class GestureViewModel: ObservableObject {
     
     // Starts the hand tracking
     public func start() async {
-        if isReadyToRun {
-            await session.requestAuthorization(for: [.handTracking])
-            // Ensure this is called prior to starting to prevent any tracking issues
-            stop()
-            do {
-                try await session.run([handTracking])
-            } catch {
-                print(error)
-            }
-            Task {
-                await processHandTrackingUpdates()
-            }
-        } else {
-            await start()
+        await session.requestAuthorization(for: [.handTracking])
+        // Ensure this is called prior to starting to prevent any tracking issues
+        stop()
+        do {
+            try await session.run([handTracking])
+        } catch {
+            print(error)
+        }
+        Task {
+            await processHandTrackingUpdates()
         }
     }
 
@@ -82,8 +78,8 @@ public class GestureViewModel: ObservableObject {
     
     // Prints if our gestures are occurring now
     func checkForGestures() {
-        guard let left = latestHandTracking.left, let right = latestHandTracking.right else {
-            print("no updates")
+        guard let left = latestHandTracking.left, let right = latestHandTracking.right, left.isTracked else {
+            print("no updates or left hand isn't tracked")
             return
         }
         if PrimitiveGestures.isThumbsUpGesture(handAnchor: left) {
@@ -105,7 +101,7 @@ public class GestureViewModel: ObservableObject {
         }
         
         if PrimitiveGestures.detectWavingMotion(handMovement: rightHandMovement) {
-            print("right waving")
+            print("Right waving")
         }
         
         if PrimitiveGestures.detectShakingMotion(handMovement: leftHandMovement) {
