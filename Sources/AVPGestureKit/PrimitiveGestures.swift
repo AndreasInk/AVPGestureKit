@@ -86,8 +86,8 @@ struct PrimitiveGestures {
         }
         
         // Define thresholds
-        // Increased threshold for the thumb to be considered 'up'
-        let thumbThreshold: Float = 0.25
+        // Decreased threshold for the thumb to be considered 'up'
+        let thumbThreshold: Float = 0.05
         // Closer threshold for other fingers to the wrist
         let otherFingersThreshold: Float = 0.15
         
