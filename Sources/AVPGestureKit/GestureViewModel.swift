@@ -8,12 +8,35 @@
 import SwiftUI
 import ARKit
 
+public enum GestureState {
+    case thumbsUp
+    case thumbsDown
+    
+    case wave
+    
+    case none
+    
+    public var emoji: String {
+        switch self {
+        case .thumbsUp:
+            return "👍"
+        case .thumbsDown:
+            return ""
+        case .wave:
+            return "👋"
+        case .none:
+            return ""
+        }
+    }
+}
+
 // If not main actor, the task fails to start
 @MainActor
 public class GestureViewModel: ObservableObject {
     
     public init() {}
     
+    @Published public var state = GestureState.none
     struct HandsUpdates {
         var left: HandAnchor?
         var right: HandAnchor?
@@ -35,8 +58,7 @@ public class GestureViewModel: ObservableObject {
     // Starts the hand tracking
     public func start() async {
         await session.requestAuthorization(for: [.handTracking])
-        // Ensure this is called prior to starting to prevent any tracking issues
-        stop()
+
         do {
             try await session.run([handTracking])
         } catch {
@@ -84,9 +106,11 @@ public class GestureViewModel: ObservableObject {
         }
         if PrimitiveGestures.isThumbsUpGesture(handAnchor: left) {
             print("Left thumbs up")
+            updateState(.thumbsUp)
         }
         if PrimitiveGestures.isThumbsUpGesture(handAnchor: right) {
             print("Right thumbs up")
+            updateState(.thumbsUp)
         }
         
         if PrimitiveGestures.isFistGesture(handAnchor: left) {
@@ -96,12 +120,14 @@ public class GestureViewModel: ObservableObject {
             print("Right fist clench")
         }
         
-        if PrimitiveGestures.detectWavingMotion(handMovement: leftHandMovement) {
+        if PrimitiveGestures.detectWavingMotion(handMovement: leftHandMovement, handAnchor: left) {
             print("Left waving")
+            updateState(.wave)
         }
         
-        if PrimitiveGestures.detectWavingMotion(handMovement: rightHandMovement) {
+        if PrimitiveGestures.detectWavingMotion(handMovement: rightHandMovement, handAnchor: right) {
             print("Right waving")
+            updateState(.wave)
         }
         
         if PrimitiveGestures.detectShakingMotion(handMovement: leftHandMovement) {
@@ -110,6 +136,14 @@ public class GestureViewModel: ObservableObject {
         
         if PrimitiveGestures.detectShakingMotion(handMovement: rightHandMovement) {
             print("right shaking")
+        }
+        
+    }
+    
+    func updateState(_ state: GestureState) {
+        self.state = state
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.state = .none
         }
     }
 }

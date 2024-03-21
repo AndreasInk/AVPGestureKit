@@ -160,33 +160,9 @@ struct PrimitiveGestures {
     /// - Returns:
     ///   * `true` if a waving motion is detected,
     ///   * `false` otherwise.
-    static func detectWavingMotion(handMovement: MovementData) -> Bool {
-        guard handMovement.positions.count >= 2 else {
-            // Not enough data to determine movement.
-            return false
-        }
+    static func detectWavingMotion(handMovement: MovementData, handAnchor: HandAnchor) -> Bool {
         
-        // Calculate horizontal movement changes between the most recent positions.
-        var horizontalMovementChanges: [Float] = []
-        var verticalMovementVariability: [Float] = []
-        for i in 1..<handMovement.positions.count {
-            let horizontalChange = abs(handMovement.positions[i].x - handMovement.positions[i-1].x)
-            let verticalChange = abs(handMovement.positions[i].y - handMovement.positions[i-1].y)
-            
-            horizontalMovementChanges.append(horizontalChange)
-            verticalMovementVariability.append(verticalChange)
-        }
-        
-        // Define thresholds for horizontal movement and vertical variability.
-        let horizontalMovementThreshold: Float = 0.1
-        // Lower threshold for vertical movement, to ensure it's more horizontal.
-        let verticalVariabilityThreshold: Float = 0.05
-        
-        // Analyze movement for horizontal predominance.
-        let hasSufficientHorizontalMovement = horizontalMovementChanges.filter { $0 > horizontalMovementThreshold }.count > 3
-        let isPrimarilyHorizontal = verticalMovementVariability.allSatisfy { $0 < verticalVariabilityThreshold }
-        
-        return hasSufficientHorizontalMovement && isPrimarilyHorizontal
+      return detectShakingMotion(handMovement: handMovement) && !isFistGesture(handAnchor: handAnchor)
     }
 
 }
