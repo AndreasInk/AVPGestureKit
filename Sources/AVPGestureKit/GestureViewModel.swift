@@ -38,8 +38,8 @@ public class GestureViewModel: ObservableObject {
     
     @Published public var state = GestureState.none
     struct HandsUpdates {
-        var left: HandAnchor?
-        var right: HandAnchor?
+        var left: (any HandAnchorProtocol)?
+        var right: (any HandAnchorProtocol)?
     }
     
     // Tracks hands
@@ -57,7 +57,9 @@ public class GestureViewModel: ObservableObject {
     
     // Starts the hand tracking
     public func start() async {
-        await session.requestAuthorization(for: [.handTracking])
+        guard await session.requestAuthorization(for: [.handTracking]) == [.handTracking: .allowed] else {
+            return
+        }
 
         do {
             try await session.run([handTracking])

@@ -29,7 +29,7 @@ struct PrimitiveGestures {
     /// Checks if a hand anchor represents a fist gesture.
         /// - Parameter handAnchor: The hand anchor data containing joint positions.
         /// - Returns: `true` if the hand anchor represents a fist gesture, `false` otherwise.
-    static func isFistGesture(handAnchor: HandAnchor) -> Bool {
+    static func isFistGesture(handAnchor: any HandAnchorProtocol) -> Bool {
         guard let wristPosition = handAnchor.handSkeleton?.joint(.wrist).anchorFromJointTransform.columns.3.xyz else {
             return false
         }
@@ -57,7 +57,8 @@ struct PrimitiveGestures {
         return true
     }
     
-    static func fistDistance(leftHandAnchor: HandAnchor, rightHandAnchor: HandAnchor) -> Float? {
+    static func fistDistance(leftHandAnchor: any HandAnchorProtocol,
+                             rightHandAnchor: any HandAnchorProtocol) -> Float? {
         guard
             let leftFistCenter = leftHandAnchor.handSkeleton?.joint(.wrist),
             let rightFistCenter = rightHandAnchor.handSkeleton?.joint(.wrist),
@@ -80,7 +81,7 @@ struct PrimitiveGestures {
         return fistsDistance
     }
     
-    static func isThumbsUpGesture(handAnchor: HandAnchor) -> Bool {
+    static func isThumbsUpGesture(handAnchor: any HandAnchorProtocol) -> Bool {
         guard let wristPosition = handAnchor.handSkeleton?.joint(.wrist).anchorFromJointTransform.columns.3.xyz else {
             return false
         }
@@ -133,16 +134,19 @@ struct PrimitiveGestures {
         
         // Calculate speed changes between the most recent positions.
         var speedChanges: [Float] = []
-        for i in 1..<handMovement.positions.count {
-            let distance = simd_distance(handMovement.positions[i], handMovement.positions[i-1])
-            let timeDelta = handMovement.times[i] - handMovement.times[i-1]
-            
-            // Avoid division by zero; continue if timeDelta is very small.
-            guard timeDelta > 1e-3 else { continue }
-            
-            let speed = distance / Float(timeDelta)
-            speedChanges.append(speed)
+        
+        guard let lastIndex = handMovement.positions.indices.last, let secondToLast = handMovement.positions.indices.dropLast().last else {
+            return false
         }
+        let distance = simd_distance(handMovement.positions[lastIndex], handMovement.positions[secondToLast])
+        let timeDelta = handMovement.times[lastIndex] - handMovement.times[secondToLast]
+        
+        // Avoid division by zero; continue if timeDelta is very small.
+        guard timeDelta > 1e-3 else { return false }
+        
+        let speed = distance / Float(timeDelta)
+        speedChanges.append(speed)
+        
         
         // Detect shaking by analyzing speed changes. Here we look for variability in speed.
         // Define 'shaking' as having a significant number of speed changes above a certain threshold.
@@ -160,7 +164,7 @@ struct PrimitiveGestures {
     /// - Returns:
     ///   * `true` if a waving motion is detected,
     ///   * `false` otherwise.
-    static func detectWavingMotion(handMovement: MovementData, handAnchor: HandAnchor) -> Bool {
+    static func detectWavingMotion(handMovement: MovementData, handAnchor: any HandAnchorProtocol) -> Bool {
         
       return detectShakingMotion(handMovement: handMovement) && !isFistGesture(handAnchor: handAnchor)
     }
