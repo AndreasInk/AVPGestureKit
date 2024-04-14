@@ -1,5 +1,5 @@
 //
-//  xyz+Ext.swift
+//  SIMD+Ext.swift
 //
 //
 //  Created by Andreas Ink on 3/20/24.
