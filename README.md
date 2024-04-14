@@ -1,7 +1,8 @@
 # AVPGestureKit
 ## Extend Apple Vision Pro's hand tracking gestures
 
-### Very WIP right now, but will keep updating. So far it supports thumbs up, waving, fist, and more gestures soon.
+### Very WIP right now, but will keep updating. 
+### So far it supports thumbs up, waving, and fist gestures, with more gestures soon.
 
 ### Tutorial Setup
 1. Add this package to dependancies in your Swift package or add this package through Swift Package Manager in your Xcode Project
